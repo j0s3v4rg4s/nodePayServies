@@ -1,0 +1,32 @@
+{
+  "name": "payu",
+  "version": "0.0.2",
+  "description": "this is a small generator of node express typescript",
+  "main": "index.js",
+  "scripts": {
+    "start": "node out/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "jose vargas",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^9.3.0",
+    "cors": "^2.8.4",
+    "express": "^4.16.2",
+    "firebase-admin": "^5.8.1",
+    "jade": "^1.11.0",
+    "md5": "^2.2.1",
+    "nodemailer": "^4.4.0",
+    "pug": "^2.0.0-rc.4",
+    "request": "^2.83.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.3",
+    "@types/express": "^4.0.39",
+    "@types/jade": "0.0.30",
+    "@types/nodemailer": "^4.3.1",
+    "@types/pug": "^2.0.4",
+    "nodemon": "^1.12.1",
+    "typescript": "^2.6.2"
+  }
+}
