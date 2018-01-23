@@ -7,18 +7,21 @@
     "start": "npm run build && node dist/index.js",
     "copy-static-assets": "ts-node copyStaticAssets.ts",
     "build-ts": "tsc",
+    "watch-ts": "tsc -w",
     "test": "jest --forceExit --coverage --verbose",
     "build": "npm run build-ts && npm run copy-static-assets"
   },
   "author": "jose vargas",
   "license": "ISC",
   "dependencies": {
+    "@types/morgan": "^1.7.35",
     "@types/node": "^9.3.0",
     "cors": "^2.8.4",
     "express": "^4.16.2",
     "firebase-admin": "^5.8.1",
     "jade": "^1.11.0",
     "md5": "^2.2.1",
+    "morgan": "^1.9.0",
     "nodemailer": "^4.4.0",
     "pug": "^2.0.0-rc.4",
     "request": "^2.83.0"
