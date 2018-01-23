@@ -2,14 +2,13 @@
     "compilerOptions": {
 		"module": "commonjs",
 		"target": "es5",
-		"outDir": "../out",
+		"outDir": "../dist",
 		"lib": [
 			"es6"
 		],
 		"sourceMap": true,
         "rootDir": ".",
         "emitDecoratorMetadata": true,
-        "experimentalDecorators": true,
-        "watch": true
+        "experimentalDecorators": true
 	}
 }

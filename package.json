@@ -4,8 +4,11 @@
   "description": "this is a small generator of node express typescript",
   "main": "index.js",
   "scripts": {
-    "start": "node out/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "npm run build && node dist/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "copy-static-assets": "ts-node copyStaticAssets.ts",
+    "build-ts": "tsc -p ./src/tsconfig.json",
+    "build": "npm run build-ts && npm run copy-static-assets"
   },
   "author": "jose vargas",
   "license": "ISC",
@@ -26,7 +29,10 @@
     "@types/jade": "0.0.30",
     "@types/nodemailer": "^4.3.1",
     "@types/pug": "^2.0.4",
+    "@types/shelljs": "^0.7.7",
     "nodemon": "^1.12.1",
+    "shelljs": "^0.8.1",
+    "ts-node": "^4.1.0",
     "typescript": "^2.6.2"
   }
 }
