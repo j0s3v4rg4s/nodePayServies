@@ -21,7 +21,7 @@ export namespace PayU {
 	export const URL_REPORT__PRODUCTION = 'https://api.payulatam.com/reports-api/4.0/service.cgi'
 
 	export function validateAccount(params: IAccount): string {
-		if (params == null) return 'PayU account is required'
+		if (params == null || Object.keys(params).length == 0) return 'PayU account is required'
 		else if (params.accountId == null) return 'accountId is required'
 		else if (params.accountId != null && !Number.isFinite(params.accountId)) return 'accountId must be a number'
 		else if (params.merchantId == null) return 'merchantId is required'
