@@ -8,6 +8,7 @@
     "copy-static-assets": "ts-node copyStaticAssets.ts",
     "build-ts": "tsc",
     "watch-ts": "tsc -w",
+    "watch": "npm run watch-ts",
     "test": "jest --forceExit --coverage --verbose",
     "build": "npm run build-ts && npm run copy-static-assets"
   },
@@ -24,7 +25,8 @@
     "morgan": "^1.9.0",
     "nodemailer": "^4.4.0",
     "pug": "^2.0.0-rc.4",
-    "request": "^2.83.0"
+    "request": "^2.83.0",
+    "uid": "0.0.2"
   },
   "devDependencies": {
     "@types/cors": "^2.8.3",
@@ -38,6 +40,7 @@
     "jest": "^22.1.4",
     "nodemon": "^1.12.1",
     "shelljs": "^0.8.1",
+    "should": "^13.2.1",
     "supertest": "^3.0.0",
     "ts-jest": "^22.0.1",
     "ts-node": "^4.1.0",

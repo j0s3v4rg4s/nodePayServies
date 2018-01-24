@@ -2,53 +2,37 @@
 // Imports
 // ----------------------------------------------------------------------------------------------------------------
 import { Router } from 'express'
+import { loginUser, IRespond } from '../config'
+import { PayU } from '../models/pasarelas/payu.models'
 import { User } from '../models/user.models'
-import { IRespond, loginAdmin } from '../config'
 
 // ----------------------------------------------------------------------------------------------------------------
 // Attributes
 // ----------------------------------------------------------------------------------------------------------------
 
-const index: Router = Router()
-
 // ----------------------------------------------------------------------------------------------------------------
 // Routers
 // ----------------------------------------------------------------------------------------------------------------
+const payu: Router = Router()
+payu.use(loginUser)
 
-index.get('/', (req, res, nex) => {
-	res.send('hello index 9')
-})
-
-index.post('/newUser', loginAdmin, (req, res, next) => {
-	const { email, password } = req.body
-	if (email == null || password == null) next('email and password are required')
-	else
-		User.createUser(email, password)
-			.then((uid) => {
+payu.post('/addAccount', (req, res, next) => {
+	const { uid } = req.body
+	delete req.body.uid
+	const data: PayU.IAccount = req.body
+	const err = PayU.validateAccount(data)
+	if (err === '') {
+		User.addPayuAccount(uid, data)
+			.then(() => {
 				const resp: IRespond = {
 					complete: true,
-					data: { uid },
-					error: null
+					error: null,
+					data: null
 				}
 				res.status(200).json(resp)
 			})
 			.catch((err) => next(err))
+	} else next(err)
 })
 
-export default index
-
-// ----------------------------------------------------------------------------------------------------------------
-// Interfaces
-// ----------------------------------------------------------------------------------------------------------------
-interface DataPayU {
-	// Merchant data when
-	merchant: {
-		apiKey: string
-		apiLogin: string
-	}
-	accountId: number
-	merchantId: number
-	url: string
-	urlReport: string
-	respond: string
-}
+export default payu
