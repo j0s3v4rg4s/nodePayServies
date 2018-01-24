@@ -39,6 +39,7 @@ payu.post('/generateToken', async (req, res, next) => {
 	const { uid } = req.body
 	const data: PayU.ICardToken = req.body.data
 	try {
+		// TODO: create function to validate than data is valid 
 		const respond = await PayU.createToken(uid, data)
 		const resp: IRespond = {
 			complete: true,
