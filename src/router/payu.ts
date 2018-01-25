@@ -34,22 +34,43 @@ payu.post('/addAccount', (req, res, next) => {
 			.catch((err) => next(err))
 	} else next(err)
 })
-
+ 
 payu.post('/generateToken', async (req, res, next) => {
 	const { uid } = req.body
 	const data: PayU.ICardToken = req.body.data
-	try {
-		// TODO: create function to validate than data is valid 
-		const respond = await PayU.createToken(uid, data)
-		const resp: IRespond = {
-			complete: true,
-			error: null,
-			data: respond
+	const err = PayU.validateTokenData(data)
+	if (err == '') {
+		try {
+			const respond = await PayU.createToken(uid, data)
+			const resp: IRespond = {
+				complete: true,
+				error: null,
+				data: respond
+			}
+			res.status(200).json(resp)
+		} catch (error) {
+			next(error)
 		}
-		res.status(200).json(resp)
-	} catch (error) {
-		next(error)
+	} else next(err)
+})
+
+payu.post('/payToken', async (req, res, next)=>{
+	const {uid, data}  = req.body
+	const err = PayU.validateDataPay(data)
+	if (err == ''){
+		try {
+			const respond = await PayU.payWithCC(uid, data)
+			const resp: IRespond = {
+				complete: true,
+				error: null,
+				data: respond
+			}
+			res.status(200).json(resp)
+		} catch (error) {
+			next (error)
+		}
 	}
+	else next(err)
 })
 
 export default payu

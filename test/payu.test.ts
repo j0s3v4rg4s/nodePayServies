@@ -157,8 +157,7 @@ describe('validate params payU', () => {
 
 })
 
-describe('generato user with data', () => {
-
+describe('generate user with data', () => {
 
 	beforeAll((done) => {
 		admin.auth().createUser({
@@ -193,5 +192,165 @@ describe('generato user with data', () => {
 			done()
 		})
 	})
+})
+
+
+describe('validate data ', () => {
+
+	beforeAll((done) => {
+		admin.auth().createUser({
+			email: "c.alejo@pappcorn.com",
+			password: "123456",
+			uid: "camiloTest"
+		}).then(() => done()).catch(err => console.log(err))
+	})
+	
+	it('send null  data', (done) => {
+		request(app)
+			.post('/payu/generateToken')
+			.send({
+				uid: 'camiloTest',
+			})
+			.expect(400)
+			.end((err, res) => {
+				expect(res.status).toBe(400)
+				expect(res.body.error).toEqual('information is required')
+				done()
+			})
+		
+	})
+	it('send null payerId', (done) => {
+		request(app)
+			.post('/payu/generateToken')
+			.send({
+				uid: 'camiloTest',
+				data: {
+					name: 'Camilo Alejo',
+					identificationNumber: '1018464736',
+					paymentMethod: 'mastercard',
+					number: '4111111111111111',
+					expirationDate: '2018/12',
+				}
+			})
+			.expect(400)
+			.end((err, res) => {
+				expect(res.status).toBe(400)
+				expect(res.body.error).toEqual('invalid payerId')
+				done()
+			})
+	})
+
+	it('send null name', (done) => {
+		request(app)
+			.post('/payu/generateToken')
+			.send({
+				uid: 'camiloTest',
+				data: {
+					payerId: 'camiloTest',
+					identificationNumber: '1018464736',
+					paymentMethod: 'mastercard',
+					number: '4111111111111111',
+					expirationDate: '2018/12',
+				}
+			})
+			.expect(400)
+			.end((err, res) => {
+				expect(res.status).toBe(400)
+				expect(res.body.error).toEqual('invalid name')
+				done()
+			})
+	})
+
+	it('send null identificationNumber', (done) => {
+		request(app)
+			.post('/payu/generateToken')
+			.send({
+				uid: 'camiloTest',
+				data: {
+					payerId: 'camiloTest',
+					name: 'Camilo Alejo',
+					paymentMethod: 'mastercard',
+					number: '4111111111111111',
+					expirationDate: '2018/12',
+				}
+			})
+			.expect(400)
+			.end((err, res) => {
+				expect(res.status).toBe(400)
+				expect(res.body.error).toEqual('invalid identificationNumber')
+				done()
+			})
+
+	})
+
+	it('send null paymentMethod', (done) => {
+		request(app)
+			.post('/payu/generateToken')
+			.send({
+				uid: 'camiloTest',
+				data: {
+					payerId: 'camiloTest',
+					name: 'Camilo Alejo',
+					identificationNumber: '1018464736',
+					number: '4111111111111111',
+					expirationDate: '2018/12',
+				}
+			})
+			.expect(400)
+			.end((err, res) => {
+				expect(res.status).toBe(400)
+				expect(res.body.error).toEqual('invalid paymentMethod')
+				done()
+			})
+	})
+
+	it('send null number', (done) => {
+		request(app)
+			.post('/payu/generateToken')
+			.send({
+				uid: 'camiloTest',
+				data: {
+					payerId: 'camiloTest',
+					name: 'Camilo Alejo',
+					identificationNumber: '1018464736',
+					paymentMethod: 'mastercard',
+					expirationDate: '2018/12',
+				}
+			})
+			.expect(400)
+			.end((err, res) => {
+				expect(res.status).toBe(400)
+				expect(res.body.error).toEqual('invalid number')
+				done()
+			})
+	})
+
+	it('send null expirationDate', (done) => {
+		request(app)
+			.post('/payu/generateToken')
+			.send({
+				uid: 'camiloTest',
+				data: {
+					payerId: 'camiloTest',
+					name: 'Camilo Alejo',
+					identificationNumber: '1018464736',
+					paymentMethod: 'mastercard',
+					number: '4111111111111111',
+				}
+			})
+			.expect(400)
+			.end((err, res) => {
+				expect(res.status).toBe(400)
+				expect(res.body.error).toEqual('invalid expirationDate')
+				done()
+			})
+	})
+
+	afterAll((done) => {
+		admin.auth().deleteUser("camiloTest").then(() => {
+			done()
+		})
+	})
+
 })
 

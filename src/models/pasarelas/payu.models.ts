@@ -1,5 +1,6 @@
 import { User } from '../user.models'
 import * as request from 'request'
+import * as md5 from 'md5'
 
 export namespace PayU {
 	// ----------------------------------------------------------------------------------------------------------------
@@ -22,6 +23,38 @@ export namespace PayU {
 		number: string // number of card
 		expirationDate: string // aaaa/mm
 	}
+
+	export interface IPayToken {
+		code: string //transaction reference code
+		description: string // transaction description 
+		txValue: number // payment amount
+		currency: string // payment currency 
+		buyerInfo: payBuy // buier info
+		payerInfo: payBuy //  CC owner info
+		valueTxTax: number // 
+		valueReturnBase: number //
+		tokenCC: string // CC token
+		typeCC: string // kind of CC
+		IPADDRESS: string
+		COOKIE: string
+		USERAGENT: string
+		SESSIONID: string
+	}
+
+	export interface payBuy {
+		name: string
+		email: string
+		shipping: {
+			adress: string
+			city: string
+			state: string
+			country: 'CO' | 'AR' | 'BR' | 'MX' | 'PA' | 'PE' | 'CL'
+			phone: string
+		}
+	}
+
+
+
 
 	// ----------------------------------------------------------------------------------------------------------------
 	// Public Constants
@@ -49,6 +82,10 @@ export namespace PayU {
 		Accept: 'application/json'
 	}
 
+	const URL_NOTIFICATION_DEV = 'https://localhost:4200'
+	const URL_NOTIFICATION_PROD = 'https://localhost:4200'
+
+
 	// ----------------------------------------------------------------------------------------------------------------
 	// Public Methods
 	// ----------------------------------------------------------------------------------------------------------------
@@ -57,7 +94,7 @@ export namespace PayU {
 	 * Validate parameters of data account PayU
 	 * @export
 	 * @param {IAccount} params
-	 * @returns {string}
+	 * @returns {string} type of error
 	 */
 	export function validateAccount(params: IAccount): string {
 		if (params == null || Object.keys(params).length == 0) return 'PayU account is required'
@@ -71,6 +108,56 @@ export namespace PayU {
 		else return ''
 	}
 
+	export function validateTokenData(params: ICardToken): string {
+		if (params == null) return "information is required"
+		else if (params.payerId == null) return 'invalid payerId'
+		else if (params.name == null) return 'invalid name'
+		else if (params.identificationNumber == null) return 'invalid identificationNumber'
+		else if (params.paymentMethod == null) return 'invalid paymentMethod'
+		else if (params.number == null) return 'invalid number'
+		else if (params.expirationDate == null) return 'invalid expirationDate'
+		else return ''
+	}
+
+	export function validateDataPay(params: IPayToken): string {
+		if (params == null) return 'infotmation is requiered'
+		else if (params.code == null) return ' code id required'
+		else if (params.description == null) return ' description id required'
+		else if (params.txValue == null) return ' txValue id required'
+		else if (params.currency == null) return ' currency id required'
+		else if (validatePayBuy(params.buyerInfo)) return  validatePayBuy(params.buyerInfo)
+		else if (validatePayBuy(params.payerInfo)) return  validatePayBuy(params.payerInfo)
+		else if (params.valueTxTax == null) return ' valueTxTax id required'
+		else if (params.valueReturnBase == null) return ' valueReturnBase id required'
+		else if (params.tokenCC == null) return ' tokenCC id required'
+		else if (params.typeCC == null) return ' typeCC id required'
+		else if (params.IPADDRESS == null) return ' IPADDRESS id required'
+		else if (params.COOKIE == null) return ' COOKIE id required'
+		else if (params.USERAGENT == null) return ' USERAGENT id required'
+		else if (params.SESSIONID == null) return ' SESSIONID id required'
+		else return ''
+	}
+
+	export function validatePayBuy(params: payBuy): string {
+		if (params.name == null ) return 'name is required'
+		else if (params.email == null ) return 'email is required'
+		if ( params.shipping ==null ) return 'shipping is required'
+		else if (params.shipping != null ){
+				if (params.shipping.adress == null) return 'adress is required'
+				else if (params.shipping.city == null) return 'city is required'
+				else if (params.shipping.state == null) return 'state is required'
+				else if (params.shipping.phone == null) return 'phone is required'
+				else if ( params.shipping.country == null) return 'Country is required'
+		}
+	}
+
+
+
+	/**
+	 * Crear el token de la tarjeta del usuario 
+	 * @param uid id del usuario en la base de datos 
+	 * @param cardData informacion de la tarjeta de credito
+	 */
 	export async function createToken(uid: string, cardData: ICardToken) {
 		try {
 			const isProduction = process.env.PRODUCTION === 'true'
@@ -97,6 +184,96 @@ export namespace PayU {
 			throw new Error(error)
 		}
 	}
+
+	export async function payWithCC(uid: string, data: IPayToken) {
+		try {
+			const isProduction = process.env.PRODUCTION === 'true'
+			let account: IAccount
+			if (isProduction) account = await User.getPayuAccount(uid)
+			else account = accountDev
+			if (account == null) {
+				throw new Error('user don´t have payU data')
+			}
+			const signature = md5(`${account.merchant.apiKey}~${account.merchantId}~${data.code}~${data.txValue}~${data.currency}`)
+			const obj = {
+				"test": false,
+				"language": "es",
+				"command": "SUBMIT_TRANSACTION",
+				"merchant": account.merchant,
+				"transaction": {
+					"order": {
+						"accountId": account.accountId,
+						"referenceCode": data.code,
+						"description": data.description,
+						"language": "es",
+						"signature": signature,
+						"notifyUrl": isProduction ? URL_NOTIFICATION_PROD : URL_NOTIFICATION_DEV,
+						"shippingAddress": {
+							"country": "CO"
+						},
+						"buyer": {
+							"fullName": data.buyerInfo.name,
+							"emailAddress": data.payerInfo.email,
+							"shippingAddress": {
+								"street1": data.buyerInfo.shipping.adress,
+								"city": data.buyerInfo.shipping.city,
+								"state": data.buyerInfo.shipping.state,
+								"country": data.buyerInfo.shipping.country,
+								"phone": data.buyerInfo.shipping.phone
+							}
+						},
+						"additionalValues": {
+							"TX_VALUE": {
+								"value": data.txValue,
+								"currency": data.currency
+							},
+							"TX_TAX": {
+								"value": data.valueTxTax,
+								"currency": data.currency
+							},
+							"TX_TAX_RETURN_BASE": {
+								"value": data.valueReturnBase,
+								"currency": data.currency
+							}
+						}
+					},
+					"creditCardTokenId": data.tokenCC,
+					"type": "AUTHORIZATION_AND_CAPTURE",
+					"paymentMethod": data.typeCC,
+					"paymentCountry": "CO",
+					"payer": {
+						"fullName": data.payerInfo.name,
+						"emailAddress": data.payerInfo.email,
+						"billingAddress": {
+							"street1": data.payerInfo.shipping.adress,
+							"city": data.payerInfo.shipping.city,
+							"state": data.payerInfo.shipping.state,
+							"country": data.payerInfo.shipping.country,
+							"phone": data.payerInfo.shipping.phone
+						}
+					},
+					"ipAddress": data.IPADDRESS,
+					"cookie": md5(data.COOKIE),
+					"userAgent": data.USERAGENT,
+					"deviceSessionId": data.SESSIONID
+				}
+			}
+
+			const options = {
+				uri: isProduction ? URL_API_PRODUCTION : URL_API_DEVELOP,
+				method: 'POST',
+				headers: headers,
+				json: obj
+			}
+
+			return await newFunction(options)
+
+		} catch (error) {
+			throw new Error(error)
+		}
+
+	}
+
 
 	// ----------------------------------------------------------------------------------------------------------------
 	// Private Methods
