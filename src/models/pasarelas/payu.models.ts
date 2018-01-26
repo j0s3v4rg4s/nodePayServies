@@ -41,6 +41,30 @@ export namespace PayU {
 		SESSIONID: string
 	}
 
+	export interface IPay {
+		code: string //transaction reference code
+		description: string // transaction description 
+		txValue: number // payment amount
+		currency: string // payment currency 
+		buyerInfo: payBuy // buier info
+		payerInfo: payBuy //  CC owner info
+		valueTxTax: number // 
+		valueReturnBase: number //
+		typeCC: string // kind of CC
+		IPADDRESS: string
+		COOKIE: string
+		USERAGENT: string
+		SESSIONID: string
+		cc: cc
+	}
+
+	export interface cc {
+		number: string //credit card number
+		securityCode: string //ccv
+		expirationDate: string // YYYY/MM
+		name: string //card owner
+	}
+
 	export interface payBuy {
 		name: string
 		email: string
@@ -130,6 +154,24 @@ export namespace PayU {
 		else if (params.valueTxTax == null) return ' valueTxTax id required'
 		else if (params.valueReturnBase == null) return ' valueReturnBase id required'
 		else if (params.tokenCC == null) return ' tokenCC id required'
+		else if (params.typeCC == null) return ' typeCC id required'
+		else if (params.IPADDRESS == null) return ' IPADDRESS id required'
+		else if (params.COOKIE == null) return ' COOKIE id required'
+		else if (params.USERAGENT == null) return ' USERAGENT id required'
+		else if (params.SESSIONID == null) return ' SESSIONID id required'
+		else return ''
+	}
+
+	export function validatePayNoData(params: IPayToken): string {
+		if (params == null) return 'infotmation is requiered'
+		else if (params.code == null) return ' code id required'
+		else if (params.description == null) return ' description id required'
+		else if (params.txValue == null) return ' txValue id required'
+		else if (params.currency == null) return ' currency id required'
+		else if (validatePayBuy(params.buyerInfo)) return  validatePayBuy(params.buyerInfo)
+		else if (validatePayBuy(params.payerInfo)) return  validatePayBuy(params.payerInfo)
+		else if (params.valueTxTax == null) return ' valueTxTax id required'
+		else if (params.valueReturnBase == null) return ' valueReturnBase id required'
 		else if (params.typeCC == null) return ' typeCC id required'
 		else if (params.IPADDRESS == null) return ' IPADDRESS id required'
 		else if (params.COOKIE == null) return ' COOKIE id required'
@@ -252,6 +294,104 @@ export namespace PayU {
 							"phone": data.payerInfo.shipping.phone
 						}
 					},
+					"ipAddress": data.IPADDRESS,
+					"cookie": md5(data.COOKIE),
+					"userAgent": data.USERAGENT,
+					"deviceSessionId": data.SESSIONID
+				}
+			}
+
+			const options = {
+				uri: isProduction ? URL_API_PRODUCTION : URL_API_DEVELOP,
+				method: 'POST',
+				headers: headers,
+				json: obj
+			}
+
+			return await newFunction(options)
+
+		} catch (error) {
+			throw new Error(error)
+		}
+
+	}
+
+
+	export async function payNoData(uid: string, data: IPay) {
+		try {
+			const isProduction = process.env.PRODUCTION === 'true'
+			let account: IAccount
+			if (isProduction) account = await User.getPayuAccount(uid)
+			else account = accountDev
+			if (account == null) {
+				throw new Error('user don´t have payU data')
+			}
+			const signature = md5(`${account.merchant.apiKey}~${account.merchantId}~${data.code}~${data.txValue}~${data.currency}`)
+			const obj = {
+				"test": false,
+				"language": "es",
+				"command": "SUBMIT_TRANSACTION",
+				"merchant": account.merchant,
+				"transaction": {
+					"order": {
+						"accountId": account.accountId,
+						"referenceCode": data.code,
+						"description": data.description,
+						"language": "es",
+						"signature": signature,
+						"notifyUrl": isProduction ? URL_NOTIFICATION_PROD : URL_NOTIFICATION_DEV,
+						"shippingAddress": {
+							"country": "CO"
+						},
+						"additionalValues": {
+							"TX_VALUE": {
+								"value": data.txValue,
+								"currency": data.currency
+							},
+							"TX_TAX": {
+								"value": data.valueTxTax,
+								"currency": data.currency
+							},
+							"TX_TAX_RETURN_BASE": {
+								"value": data.valueReturnBase,
+								"currency": data.currency
+							}
+						},
+						"buyer": {
+							"fullName": data.buyerInfo.name,
+							"emailAddress": data.payerInfo.email,
+							"shippingAddress": {
+								"street1": data.buyerInfo.shipping.adress,
+								"city": data.buyerInfo.shipping.city,
+								"state": data.buyerInfo.shipping.state,
+								"country": data.buyerInfo.shipping.country,
+								"phone": data.buyerInfo.shipping.phone
+							}
+						}
+					},
+					"payer": {
+						"fullName": data.payerInfo.name,
+						"emailAddress": data.payerInfo.email,
+						"billingAddress": {
+							"street1": data.payerInfo.shipping.adress,
+							"city": data.payerInfo.shipping.city,
+							"state": data.payerInfo.shipping.state,
+							"country": data.payerInfo.shipping.country,
+							"phone": data.payerInfo.shipping.phone
+						}
+					},
+					"creditCard": {
+						"number": data.cc.number,
+						"securityCode": data.cc.securityCode,
+						"expirationDate": data.cc.expirationDate,
+						"name": data.cc.name
+					 },
+					 "extraParameters": {
+						"INSTALLMENTS_NUMBER": 1
+					 },
+					"type": "AUTHORIZATION_AND_CAPTURE",
+					"paymentMethod": data.typeCC,
+					"paymentCountry": "CO",
 					"ipAddress": data.IPADDRESS,
 					"cookie": md5(data.COOKIE),
 					"userAgent": data.USERAGENT,

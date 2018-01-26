@@ -34,7 +34,7 @@ payu.post('/addAccount', (req, res, next) => {
 			.catch((err) => next(err))
 	} else next(err)
 })
- 
+
 payu.post('/generateToken', async (req, res, next) => {
 	const { uid } = req.body
 	const data: PayU.ICardToken = req.body.data
@@ -54,10 +54,10 @@ payu.post('/generateToken', async (req, res, next) => {
 	} else next(err)
 })
 
-payu.post('/payToken', async (req, res, next)=>{
-	const {uid, data}  = req.body
+payu.post('/payToken', async (req, res, next) => {
+	const { uid, data } = req.body
 	const err = PayU.validateDataPay(data)
-	if (err == ''){
+	if (err == '') {
 		try {
 			const respond = await PayU.payWithCC(uid, data)
 			const resp: IRespond = {
@@ -67,7 +67,26 @@ payu.post('/payToken', async (req, res, next)=>{
 			}
 			res.status(200).json(resp)
 		} catch (error) {
-			next (error)
+			next(error)
+		}
+	}
+	else next(err)
+})
+
+payu.post('/payNoData', async (req, res, next) => {
+	const { uid, data } = req.body
+	const err = PayU.validatePayNoData(data)
+	if (err == '') {
+		try {
+			const respond = await PayU.payNoData(uid, data)
+			const resp: IRespond = {
+				complete: true,
+				error: null,
+				data: respond
+			}
+			res.status(200).json(resp)
+		} catch (error) {
+			next(error)
 		}
 	}
 	else next(err)
