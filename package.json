@@ -4,7 +4,7 @@
   "description": "this is a small generator of node express typescript",
   "main": "index.js",
   "scripts": {
-    "start": "npm install -g typescript && npm run build && node dist/index.js",
+    "start": "node dist/index.js",
     "copy-static-assets": "ts-node copyStaticAssets.ts",
     "build-ts": "tsc",
     "watch-ts": "tsc -w",
