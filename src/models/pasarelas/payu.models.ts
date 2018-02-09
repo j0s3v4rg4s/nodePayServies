@@ -26,12 +26,12 @@ export namespace PayU {
 
 	export interface IPayToken {
 		code: string //transaction reference code
-		description: string // transaction description 
+		description: string // transaction description
 		txValue: number // payment amount
-		currency: string // payment currency 
+		currency: string // payment currency
 		buyerInfo: payBuy // buier info
 		payerInfo: payBuy //  CC owner info
-		valueTxTax: number // 
+		valueTxTax: number //
 		valueReturnBase: number //
 		tokenCC: string // CC token
 		typeCC: string // kind of CC
@@ -43,12 +43,12 @@ export namespace PayU {
 
 	export interface IPay {
 		code: string //transaction reference code
-		description: string // transaction description 
+		description: string // transaction description
 		txValue: number // payment amount
-		currency: string // payment currency 
+		currency: string // payment currency
 		buyerInfo: payBuy // buier info
 		payerInfo: payBuy //  CC owner info
-		valueTxTax: number // 
+		valueTxTax: number //
 		valueReturnBase: number //
 		typeCC: string // kind of CC
 		IPADDRESS: string
@@ -196,8 +196,8 @@ export namespace PayU {
 
 
 	/**
-	 * Crear el token de la tarjeta del usuario 
-	 * @param uid id del usuario en la base de datos 
+	 * Crear el token de la tarjeta del usuario
+	 * @param uid id del usuario en la base de datos
 	 * @param cardData informacion de la tarjeta de credito
 	 */
 	export async function createToken(uid: string, cardData: ICardToken) {
